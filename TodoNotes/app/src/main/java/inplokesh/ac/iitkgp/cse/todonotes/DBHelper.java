@@ -98,7 +98,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         try {
             while (!resultSet.isAfterLast()) {
-                Notes note = new Notes(resultSet.getString(1), resultSet.getString(2), resultSet.getString(0));
+                Notes note = new Notes(resultSet.getString(1), resultSet.getString(2), resultSet.getString(0), resultSet.getInt(3));
                 notesList.add(note);
                 resultSet.moveToNext();
             }
@@ -122,7 +122,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         try {
             while (!resultSet.isAfterLast()) {
-                Notes note = new Notes(resultSet.getString(1), resultSet.getString(2), resultSet.getString(0));
+                Notes note = new Notes(resultSet.getString(1), resultSet.getString(2), resultSet.getString(0), resultSet.getInt(3));
                 notesList.add(note);
                 resultSet.moveToNext();
             }

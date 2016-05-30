@@ -49,6 +49,11 @@ public class AppConstants {
         return PURPOSE_DELETE_DIALOG;
     }
 
+    public static int getPurposeAlertUserDialog() {
+        return PURPOSE_ALERT_USER_DIALOG;
+    }
+
+
     public static String getErrorDeletingNote() {
         return ERROR_DELETING_NOTE;
     }
@@ -67,10 +72,10 @@ public class AppConstants {
     private static String MOVE_TRASH_SUCCESS = "Note moved to trash successfully ";
 
 
-
     private static String ERROR_DELETING_NOTE = "Error deleting note ";
     public static final int PURPOSE_TITLE_DIALOG = 0;
     public static final int PURPOSE_DELETE_DIALOG = 1;
+    public static final int PURPOSE_ALERT_USER_DIALOG = 2;
 
 
 }

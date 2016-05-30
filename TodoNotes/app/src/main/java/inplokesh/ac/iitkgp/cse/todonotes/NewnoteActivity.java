@@ -7,6 +7,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.text.method.KeyListener;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,12 +19,14 @@ import android.widget.Toast;
 
 public class NewnoteActivity extends AppCompatActivity {
 
-    String title, content;
+    String title;
+    String content = ""; // content is the content of note , after every Db update 'content' and 'noteEditText' should be in sync
     String docId;
     Bundle extras; // Extras Bundle differentiates b/w old and new notes
     DBHelper dbHelper;
 
     EditText noteEditText;
+    KeyListener editTextListener;
     Button footerActionButton;
 
     DialogFragment titleDialog;
@@ -51,13 +54,6 @@ public class NewnoteActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(title);
         }
     }
-
-    public void setNoteEditTextStatus(boolean enable) {
-        noteEditText = (EditText) findViewById(R.id.note);
-        noteEditText.setFocusable(enable);
-        noteEditText.setClickable(enable);
-    }
-
 
     public void getInfoFromLaunchingActivity() {
         extras = getIntent().getExtras();
@@ -87,7 +83,10 @@ public class NewnoteActivity extends AppCompatActivity {
     public void prepareEditor() {
         noteEditText = (EditText) findViewById(R.id.note);
         noteEditText.setText(content);
+        editTextListener = noteEditText.getKeyListener();
+        // Disable edit incase of opening an old note
         if (!TextUtils.isEmpty(content)) {
+            noteEditText.setKeyListener(null);
         }
     }
 
@@ -107,13 +106,24 @@ public class NewnoteActivity extends AppCompatActivity {
             // Update the note
             dbHelper.deleteNote(docId); // Todo check return value
             docId = Utils.getCurrentTimeStamp();
+            content = noteEditText.getText().toString();
             dbHelper.insertNote(docId, title, noteEditText.getText().toString(), 1);
             Toast.makeText(TodoNotes.getContext(), AppConstants.getNoteUpdateSuccess(), Toast.LENGTH_LONG).show();
             updateUIPostDBUpdate();
         } else {
             // New note
-            titleDialog = new MyAlertDialogFragment().newInstance(AppConstants.PURPOSE_TITLE_DIALOG);
+            titleDialog = new MyAlertDialogFragment().newInstance(AppConstants.getPurposeTitleDialog());
             titleDialog.show(getSupportFragmentManager(), null);
+        }
+    }
+
+    public void setNoteEditable(boolean isEditable) {
+        if (isEditable) {
+            noteEditText.setKeyListener(editTextListener);
+            noteEditText.requestFocus();
+            noteEditText.setSelection(noteEditText.getText().length());
+        } else {
+            noteEditText.setKeyListener(null);
         }
     }
 
@@ -123,11 +133,13 @@ public class NewnoteActivity extends AppCompatActivity {
 
         if (extras != null) {
             // Old note
-//            setNoteEditTextStatus(false);
             footerActionButton.setText(AppConstants.getActionEdit());
+            setNoteEditable(false);
         } else {
             // New note
             footerActionButton.setText(AppConstants.getActionDone());
+            setNoteEditable(true);
+
         }
 
         footerActionButton.setOnClickListener(new View.OnClickListener() {
@@ -135,54 +147,47 @@ public class NewnoteActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (footerActionButton.getText().equals(AppConstants.getActionEdit())) {
                     // Start Editing and change the text of footer button
-//                    setNoteEditTextStatus(true);
+                    setNoteEditable(true);
                     footerActionButton.setText(AppConstants.getActionDone());
                 } else {
                     // Editing done , apply changes to DB
-//                    setNoteEditTextStatus(false);
+                    setNoteEditable(false);
                     saveDocToDB();
                 }
             }
         });
     }
 
-    public void showAlertDialog() {
-        AlertDialog alertDialog = new AlertDialog.Builder(this).setIcon(android.R.drawable.ic_dialog_alert).setMessage("Are you sure you want to close without saving the current note ?")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                })
-                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
-                }).create();
-        alertDialog.show();
-    }
 
     @Override
     public void onBackPressed() {
 
-        if (footerActionButton != null && footerActionButton.getText().equals(AppConstants.getActionDone())) {
-            if (extras == null) {
-                // In New Doc
-                if (TextUtils.isEmpty(noteEditText.getText().toString())) {
-                    // User not missing anything
-                    super.onBackPressed();
-                } else {
-                    // Probably user misses something
-                    showAlertDialog();
-                }
-            } else {
-                // user edited existing doc
-                showAlertDialog();
-            }
+        if (!noteEditText.getText().toString().equals(content)) {
+            MyAlertDialogFragment alertDialogFragment = MyAlertDialogFragment.newInstance(AppConstants.getPurposeAlertUserDialog());
+            alertDialogFragment.show(getSupportFragmentManager(), "");
         } else {
             super.onBackPressed();
         }
+
+//        if (footerActionButton != null && footerActionButton.getText().equals(AppConstants.getActionDone())) {
+//            if (extras == null) {
+//                // In New Doc
+//                if (TextUtils.isEmpty(noteEditText.getText().toString())) {
+//                    // User not missing anything
+//                    super.onBackPressed();
+//                } else {
+//                    // Probably user misses something
+//                    MyAlertDialogFragment alertDialogFragment = MyAlertDialogFragment.newInstance(AppConstants.getPurposeAlertUserDialog());
+//                    alertDialogFragment.show(getSupportFragmentManager(), "");
+//                }
+//            } else {
+//                // user edited existing doc
+//                MyAlertDialogFragment alertDialogFragment = MyAlertDialogFragment.newInstance(AppConstants.getPurposeDeleteDialog());
+//                alertDialogFragment.show(getSupportFragmentManager(), "");
+//            }
+//        } else {
+//            super.onBackPressed();
+//        }
 
 
     }
@@ -207,6 +212,27 @@ public class NewnoteActivity extends AppCompatActivity {
 
             switch (purpose) {
 
+                case AppConstants.PURPOSE_ALERT_USER_DIALOG:
+
+                    // Show alert Dialog
+                    builder.setTitle("Alert")
+                            .setMessage("Are you sure you want to close without saving the current note ?")
+                            .setPositiveButton("No",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                        }
+                                    }
+                            )
+                            .setNegativeButton("Yes",
+                                    new DialogInterface.OnClickListener() {
+                                        public void onClick(DialogInterface dialog, int whichButton) {
+                                            getActivity().finish();
+                                        }
+                                    }
+                            );
+                    break;
+
+
                 case AppConstants.PURPOSE_TITLE_DIALOG:
 
                     // Show Title Dialog
@@ -217,8 +243,8 @@ public class NewnoteActivity extends AppCompatActivity {
                     final EditText newNoteTitleET = (EditText) view.findViewById(R.id.newNoteTitle);
 
 
-                    builder.setTitle("Title")
-                            .setPositiveButton("Yes",
+                    builder.setTitle("Title your note")
+                            .setPositiveButton("Done",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
                                             // Todo enable this button only if the title is non empty
@@ -226,7 +252,7 @@ public class NewnoteActivity extends AppCompatActivity {
                                         }
                                     }
                             )
-                            .setNegativeButton("No",
+                            .setNegativeButton("Cancel",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
                                             ((NewnoteActivity) getActivity()).onUserCancelClick();
@@ -239,17 +265,17 @@ public class NewnoteActivity extends AppCompatActivity {
                     // Show Delete Dialog
                     builder.setTitle("Delete")
                             .setMessage("This action will delete the current note")
-                            .setPositiveButton("Yes",
+                            .setPositiveButton("No",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
                                             // Todo enable this button only if the title is non empty
-                                            ((NewnoteActivity) getActivity()).deleteCurrentNote();
                                         }
                                     }
                             )
-                            .setNegativeButton("No",
+                            .setNegativeButton("Yes",
                                     new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int whichButton) {
+                                            ((NewnoteActivity) getActivity()).deleteCurrentNote();
                                         }
                                     }
                             );
@@ -264,8 +290,10 @@ public class NewnoteActivity extends AppCompatActivity {
 
     public void saveNewnoteToDB(String title) {
         Log.d("MainActivity", "Inserting " + docId + "-" + title + "-" + noteEditText.getText().toString());
-        boolean isInserted = dbHelper.insertNote(docId, title, noteEditText.getText().toString(), 1);
-        Log.d("MainActivity", "Inserted value is " + String.valueOf(isInserted));
+
+        dbHelper.insertNote(docId, title, noteEditText.getText().toString(), 1);
+        content = noteEditText.getText().toString();
+
         Toast.makeText(TodoNotes.getContext(), AppConstants.getNoteInsertSuccess(), Toast.LENGTH_LONG).show();
 
         extras = new Bundle(); // Since the note needs to behave as old once it is saved in db
@@ -295,6 +323,11 @@ public class NewnoteActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.note_menu, menu);
+        if (TextUtils.isEmpty(content)) {
+            MenuItem delete = (MenuItem) menu.findItem(R.id.deleteNote);
+            delete.setVisible(false);
+            invalidateOptionsMenu();
+        }
         return true;
     }
 
@@ -304,6 +337,10 @@ public class NewnoteActivity extends AppCompatActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        if (id == android.R.id.home) {
+            onBackPressed();
+        }
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.deleteNote) {

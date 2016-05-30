@@ -1,7 +1,9 @@
 package inplokesh.ac.iitkgp.cse.todonotes;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -29,7 +31,9 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdap
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView title;
         public TextView content;
-        private String docId;
+        public String docId;
+        public int isActive;
+
 
         public ViewHolder(View v) {
             super(v);
@@ -38,11 +42,47 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdap
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent noteDetailIntent = new Intent(context, NewnoteActivity.class);
-                    noteDetailIntent.putExtra("docId", docId);
-                    noteDetailIntent.putExtra("title", title.getText());
-                    noteDetailIntent.putExtra("content", content.getText());
-                    context.startActivity(noteDetailIntent);
+
+                    if (isActive == 1) {
+                        // Open Active note
+                        Intent noteDetailIntent = new Intent(context, NewnoteActivity.class);
+                        noteDetailIntent.putExtra("docId", docId);
+                        noteDetailIntent.putExtra("title", title.getText());
+                        noteDetailIntent.putExtra("content", content.getText());
+                        context.startActivity(noteDetailIntent);
+                    } else {
+                        // Show the doc to user in dialog , Give option to restore
+                        AlertDialog alertDialog = new AlertDialog.Builder(context).setIcon(android.R.drawable.ic_dialog_alert).
+                                setTitle(title.getText())
+                                .setMessage(content.getText())
+                                .setPositiveButton("Restore Note", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Update note status in db and remove it from trash list
+                                        DBHelper dbHelper = new DBHelper(context);
+                                        dbHelper.updateNote(docId, title.getText().toString(), content.getText().toString(), 1);
+
+                                        // Update the list
+                                        ((MainActivity) context).notesList.remove(getAdapterPosition());
+                                        ((MainActivity) context).adapter.notifyDataSetChanged();
+                                    }
+                                })
+                                .setNegativeButton("Delete forever", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // Delete the note from db , update the list
+                                        DBHelper dbHelper = new DBHelper(context);
+                                        dbHelper.deleteNote(docId);
+
+                                        // Update the list
+                                        ((MainActivity) context).notesList.remove(getAdapterPosition());
+                                        ((MainActivity) context).adapter.notifyDataSetChanged();
+                                    }
+                                }).create();
+                        alertDialog.show();
+
+                    }
+
                 }
             });
         }
@@ -78,6 +118,7 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdap
         holder.title.setText(notesList.get(position).getTitle());
         holder.content.setText(notesList.get(position).getContent());
         holder.docId = notesList.get(position).getDocId();
+        holder.isActive = notesList.get(position).getIsActive();
 
     }
 

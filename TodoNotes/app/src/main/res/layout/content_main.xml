@@ -51,7 +51,7 @@
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
     android:gravity="center"
-    android:text="Shortlist properties to make house hunting easier, faster and better"
+    android:text=""
     android:textSize="16dp" />
 
     <ImageView

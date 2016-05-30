@@ -5,10 +5,11 @@ package inplokesh.ac.iitkgp.cse.todonotes;
  */
 public class Notes {
 
-    public Notes(String title, String content,String docId) {
+    public Notes(String title, String content, String docId, int isActive) {
         this.title = title;
         this.content = content;
         this.docId = docId;
+        this.isActive = isActive;
     }
 
     public String getDocId() {
@@ -27,9 +28,14 @@ public class Notes {
         return content;
     }
 
+    public int getIsActive() {
+        return isActive;
+    }
+
 
     private String title;
     private String content;
     private String docId;
+    private int isActive;
 
 }

@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity
 
     DBHelper dbHelper;
     ArrayList<Notes> notesList;
+    NotesRecyclerAdapter adapter;
 
     private boolean fetchFromTrash = false;
 
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
             notesListRecyclerView.setLayoutManager(layoutManager);
 
-            NotesRecyclerAdapter adapter = new NotesRecyclerAdapter(notesList, this);
+            adapter = new NotesRecyclerAdapter(notesList, this);
             notesListRecyclerView.setAdapter(adapter);
         }
 
@@ -122,9 +123,10 @@ public class MainActivity extends AppCompatActivity
         notesList = new ArrayList<Notes>();
 
         if (fetchFromTrash) {
-
+            getSupportActionBar().setTitle("Deleted Notes");
             notesList = dbHelper.getTrashNotes();
         } else {
+            getSupportActionBar().setTitle("Active Notes");
             notesList = dbHelper.getActiveNotes();
         }
 

@@ -4,17 +4,17 @@
 
     <item
         android:id="@+id/newNoteNavbar"
-        android:icon="@drawable/ic_menu_share"
+        android:icon="@drawable/ic_menu_send"
         android:title="New Note" />
 
     <item
         android:id="@+id/viewActiveNotesNavbar"
-        android:icon="@drawable/ic_menu_share"
+        android:icon="@drawable/ic_menu_gallery"
         android:title="View Notes" />
 
     <item
         android:id="@+id/viewTrashNavbar"
-        android:icon="@drawable/ic_menu_share"
+        android:icon="@drawable/ic_menu_manage"
         android:title="View Trash" />
 
 </menu>
