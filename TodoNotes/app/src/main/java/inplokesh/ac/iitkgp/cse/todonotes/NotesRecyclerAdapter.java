@@ -65,6 +65,13 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdap
                                         // Update the list
                                         ((MainActivity) context).notesList.remove(getAdapterPosition());
                                         ((MainActivity) context).adapter.notifyDataSetChanged();
+
+                                        if (notesList.size() == 0) {
+                                            // NO items , show zero layout
+                                            ((MainActivity) context).onResume();
+
+                                        }
+
                                     }
                                 })
                                 .setNegativeButton("Delete forever", new DialogInterface.OnClickListener() {
@@ -77,6 +84,12 @@ public class NotesRecyclerAdapter extends RecyclerView.Adapter<NotesRecyclerAdap
                                         // Update the list
                                         ((MainActivity) context).notesList.remove(getAdapterPosition());
                                         ((MainActivity) context).adapter.notifyDataSetChanged();
+
+                                        if (notesList.size() == 0) {
+                                            // NO items , show zero layout
+                                            ((MainActivity) context).onResume();
+
+                                        }
                                     }
                                 }).create();
                         alertDialog.show();

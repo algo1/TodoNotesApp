@@ -104,12 +104,18 @@ public class NewnoteActivity extends AppCompatActivity {
     public void saveDocToDB() {
         if (extras != null) {
             // Update the note
-            dbHelper.deleteNote(docId); // Todo check return value
-            docId = Utils.getCurrentTimeStamp();
-            content = noteEditText.getText().toString();
-            dbHelper.insertNote(docId, title, noteEditText.getText().toString(), 1);
-            Toast.makeText(TodoNotes.getContext(), AppConstants.getNoteUpdateSuccess(), Toast.LENGTH_LONG).show();
+            if (!TextUtils.equals(content, noteEditText.getText().toString())) {
+                dbHelper.deleteNote(docId); // Todo check return value
+                docId = Utils.getCurrentTimeStamp(); // update docId to make it more recent
+                dbHelper.insertNote(docId, title, noteEditText.getText().toString(), 1);
+
+                content = noteEditText.getText().toString();
+                Toast.makeText(TodoNotes.getContext(), AppConstants.getNoteUpdateSuccess(), Toast.LENGTH_LONG).show();
+            } else {
+                // No change in  note content , no need to update
+            }
             updateUIPostDBUpdate();
+
         } else {
             // New note
             titleDialog = new MyAlertDialogFragment().newInstance(AppConstants.getPurposeTitleDialog());

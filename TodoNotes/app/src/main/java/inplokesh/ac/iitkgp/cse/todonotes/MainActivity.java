@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -92,19 +94,32 @@ public class MainActivity extends AppCompatActivity
     public void showNotesList() {
 
         RecyclerView notesListRecyclerView = (RecyclerView) findViewById(R.id.notesRecyclerView);
-//        LinearLayout zero_note = (LinearLayout) findViewById(R.id.zero_note);
+        LinearLayout zero_note = (LinearLayout) findViewById(R.id.zero_note);
 
 
         if (notesList == null || notesList.size() == 0) {
             // No notes
             Log.d(TAG, "No Notes");
             notesListRecyclerView.setVisibility(View.GONE);
-//            zero_note.setVisibility(View.VISIBLE);
+            zero_note.setVisibility(View.VISIBLE);
+
+            if (!fetchFromTrash) {
+                TextView infoTextZeroNote = (TextView) findViewById(R.id.infoTextZeroNote);
+                infoTextZeroNote.setText("Oops ,No Notes");
+                TextView textView1 = (TextView) findViewById(R.id.textView1);
+                textView1.setVisibility(View.VISIBLE);
+                textView1.setText("Start adding notes by clicking on the add button");
+            } else {
+                TextView infoTextZeroNote = (TextView) findViewById(R.id.infoTextZeroNote);
+                infoTextZeroNote.setText("Nothing in trash");
+                TextView textView1 = (TextView) findViewById(R.id.textView1);
+                textView1.setVisibility(View.GONE);
+            }
         } else {
 
             Log.d(TAG, "Notes size in show ui " + notesList.size());
+            zero_note.setVisibility(View.GONE);
             notesListRecyclerView.setVisibility(View.VISIBLE);
-//            zero_note.setVisibility(View.GONE);
             notesListRecyclerView.setHasFixedSize(true);
 
             RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
